@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>library ml</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav>
+    <a href="/" class="brand">library ml</a>
+    <ul>
+        <li><a href="/" class="active">upload</a></li>
+        <li><a href="/results">results</a></li>
+        <li><a href="/predict">predict</a></li>
+    </ul>
+</nav>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <p>training model, please wait...</p>
+</div>
+
+<div class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <div class="card hero">
+        <h1>book popularity analysis</h1>
+        <p class="subtitle">
+            upload a library catalog dataset. the system will train a machine learning model
+            and help predict how many copies of a new book should be purchased.
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>upload data</h2>
+        <p>
+            upload a csv file with historical book data.
+            the file must contain columns:
+            <strong>book_id, genre, author_popularity, year_published,
+            price, page_count, times_borrowed, rating, is_popular</strong>.
+        </p>
+
+        <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                <div class="icon">[ file ]</div>
+                <label for="fileInput">
+                    <strong>click to select file</strong><br>
+                    <span style="color:#a0aec0;font-size:0.9rem;">csv format only</span>
+                </label>
+                <input type="file" id="fileInput" name="file" accept=".csv">
+                <div class="file-name" id="fileName">no file selected</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full" id="submitBtn">
+                upload and train model
+            </button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>how it works</h2>
+        <p>
+            <strong>1. upload.</strong> the system accepts csv files with book data (10 to 500000+ rows).<br><br>
+            <strong>2. training.</strong> random forest classifier analyzes dependencies between genre, rating, author popularity and other parameters.<br><br>
+            <strong>3. results.</strong> you get model metrics and 4 charts with fund analytics.<br><br>
+            <strong>4. prediction.</strong> enter parameters of a new book and the system will recommend the optimal number of copies to purchase.
+        </p>
+    </div>
+
+</div>
+
+<script>
+document.getElementById("fileInput").addEventListener("change", function() {
+    const name = this.files[0] ? this.files[0].name : "no file selected";
+    document.getElementById("fileName").textContent = name;
+});
+
+document.getElementById("uploadForm").addEventListener("submit", function() {
+    document.getElementById("loadingOverlay").classList.add("show");
+});
+</script>
+
+</body>
+</html>

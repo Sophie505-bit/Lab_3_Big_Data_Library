@@ -1,0 +1,118 @@
+# библиотека больших данных — ml система для прогнозирования популярности книг
+
+лабораторная работа по большим данным
+ИТМО, 2026
+
+## описание
+
+Веб-приложение для библиотек, которое:
+- загружает большие наборы данных о книгах (CSV, 100000+ строк)
+- обучает модель случайного леса для предсказания популярности книги
+- визуализирует аналитику фонда через 4 графика
+- рекомендует количество экземпляров новой книги для закупки
+
+Связь с требованиями библиотечной системы по техническому заданию с прошлого семестра:
+- "статистика популярности книг" (раздел 3.1.6)
+- "количество новинок" (раздел 3.1.6)
+- "генерация отчётов" (раздел 3.1.6)
+
+---
+
+##старт
+
+### 1. клонирование репозитория
+
+git clone https://github.com/Sophie505-bit/Lab_3_Big_Data_Library.git
+cd Lab_3_Big_Data_Library
+
+### 2. создание виртуального окружения
+
+python -m venv venv
+
+Windows:
+venv\Scripts\activate
+
+macOS / Linux:
+source venv/bin/activate
+
+### 3. установка зависимостей
+
+pip install -r requirements.txt
+
+### 4. генерация тестового набора данных
+
+python data/generate_data.py
+
+Эта команда создаёт data/books.csv с 100000 строк.
+
+### 5. запуск приложения
+
+python app.py
+
+Откройте браузер: http://127.0.0.1:5000
+
+---
+
+## структура проекта
+
+Lab_3_Big_Data_Library/
+├── app.py
+├── requirements.txt
+├── README.md
+├── data/
+│   └── generate_data.py
+├── ml/
+│   └── model.py
+├── static/
+│   ├── css/style.css
+│   └── plots/
+└── templates/
+    ├── index.html
+    ├── results.html
+    └── predict.html
+
+---
+
+## формат CSV
+
+book_id     — идентификатор книги (int)
+genre       — жанр (string)
+author_popularity — популярность автора 0.0-1.0 (float)
+year_published    — год издания (int)
+price       — цена в рублях (float)
+page_count  — количество страниц (int)
+times_borrowed   — сколько раз брали (int)
+rating      — рейтинг 1.0-5.0 (float)
+is_popular  — метка: популярная (1) / не популярная (0) (int)
+
+---
+
+## ML модель
+
+Алгоритм: случайный лес (Random Forest Classifier)
+Признаки: genre, author_popularity, year_published, price, page_count, times_borrowed, rating
+Целевая переменная: is_popular
+Разбиение: 80% обучение / 20% тест
+Метрики: точность (accuracy), прецизионность (precision), полнота (recall), F1, ROC-AUC
+
+---
+
+## графики
+
+1. доля популярных книг по жанрам — столбчатая диаграмма
+2. корреляционная матрица — тепловая карта (heatmap)
+3. важность признаков — горизонтальные столбцы
+4. ROC-кривая — с показателем AUC
+
+---
+
+## стек
+
+Python 3.10+
+Flask 3.0
+pandas, numpy
+scikit-learn
+matplotlib, seaborn
+
+---
+

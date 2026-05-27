@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>results — library ml</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav>
+    <a href="/" class="brand">library ml</a>
+    <ul>
+        <li><a href="/">upload</a></li>
+        <li><a href="/results" class="active">results</a></li>
+        <li><a href="/predict">predict</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% if metrics %}
+
+    <div class="card">
+        <h2>dataset summary</h2>
+        <p>data loaded and processed successfully. model has been trained.</p>
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="val">{{ "{:,}".format(metrics.total) }}</div>
+                <div class="lbl">total records</div>
+            </div>
+            <div class="stat-item">
+                <div class="val">{{ "{:,}".format(metrics.popular_count) }}</div>
+                <div class="lbl">popular books</div>
+            </div>
+            <div class="stat-item">
+                <div class="val">{{ "{:,}".format(metrics.not_popular_count) }}</div>
+                <div class="lbl">not popular books</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>model metrics (random forest)</h2>
+        <p>classification quality evaluated on test set (20% of data).</p>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value">{{ (metrics.accuracy * 100)|round(1) }}%</div>
+                <div class="metric-label">accuracy</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ (metrics.precision * 100)|round(1) }}%</div>
+                <div class="metric-label">precision</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ (metrics.recall * 100)|round(1) }}%</div>
+                <div class="metric-label">recall</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ (metrics.f1 * 100)|round(1) }}%</div>
+                <div class="metric-label">f1-score</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ metrics.roc_auc }}</div>
+                <div class="metric-label">roc-auc</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>data visualization</h2>
+        <p>charts generated automatically after model training.</p>
+        <div class="plots-grid">
+            <div class="plot-card">
+                <h3>popularity by genre</h3>
+                <img src="{{ url_for('static', filename='plots/genre_popularity.png') }}"
+                     alt="genre popularity">
+            </div>
+            <div class="plot-card">
+                <h3>correlation matrix</h3>
+                <img src="{{ url_for('static', filename='plots/correlation.png') }}"
+                     alt="correlation">
+            </div>
+            <div class="plot-card">
+                <h3>feature importance</h3>
+                <img src="{{ url_for('static', filename='plots/feature_importance.png') }}"
+                     alt="feature importance">
+            </div>
+            <div class="plot-card">
+                <h3>roc curve</h3>
+                <img src="{{ url_for('static', filename='plots/roc_curve.png') }}"
+                     alt="roc curve">
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align:center; margin-bottom: 2rem;">
+        <a href="/predict" class="btn btn-success">
+            predict popularity for a new book
+        </a>
+    </div>
+
+    {% else %}
+    <div class="card" style="text-align:center; padding: 3rem;">
+        <h2 style="margin-bottom:0.75rem;">no data yet</h2>
+        <p style="margin-bottom:1.5rem;">please upload a csv file to train the model.</p>
+        <a href="/" class="btn btn-primary">back to upload</a>
+    </div>
+    {% endif %}
+
+</div>
+</body>
+</html>

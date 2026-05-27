@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>predict — library ml</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav>
+    <a href="/" class="brand">library ml</a>
+    <ul>
+        <li><a href="/">upload</a></li>
+        <li><a href="/results">results</a></li>
+        <li><a href="/predict" class="active">predict</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% if result %}
+    <div class="result-card {{ 'popular' if result.prediction == 1 else 'not-popular' }}">
+        <div class="result-label">{{ result.label }}</div>
+        <div class="result-prob">
+            popularity probability: <strong>{{ result.probability }}%</strong>
+        </div>
+        <div class="prob-bar-wrap">
+            <div class="prob-bar {{ 'high' if result.prediction == 1 else 'low' }}"
+                 style="width: {{ result.probability }}%"></div>
+        </div>
+        <div class="recommendation">
+            {{ result.recommendation }}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <h2>predict for a new book</h2>
+        <p>enter book characteristics. the model will predict its popularity and
+           recommend the optimal number of copies to purchase.</p>
+
+        <form method="POST" action="/predict">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="genre">genre</label>
+                    <select name="genre" id="genre" required>
+                        {% for g in genres %}
+                            <option value="{{ g }}">{{ g }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="author_popularity">author popularity</label>
+                    <input type="number" name="author_popularity" id="author_popularity"
+                           min="0" max="1" step="0.01" value="0.5" required>
+                    <span class="hint">value from 0.0 (unknown) to 1.0 (very well known)</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="year_published">year published</label>
+                    <input type="number" name="year_published" id="year_published"
+                           min="1900" max="2025" value="2023" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="price">price (rub)</label>
+                    <input type="number" name="price" id="price"
+                           min="1" step="0.01" value="500" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="page_count">page count</label>
+                    <input type="number" name="page_count" id="page_count"
+                           min="1" value="300" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="times_borrowed">expected times borrowed</label>
+                    <input type="number" name="times_borrowed" id="times_borrowed"
+                           min="0" value="50" required>
+                    <span class="hint">estimated or average for similar books</span>
+                </div>
+
+                <div class="form-group" style="grid-column: span 2;">
+                    <label for="rating">rating</label>
+                    <input type="number" name="rating" id="rating"
+                           min="1" max="5" step="0.1" value="4.0" required>
+                    <span class="hint">from 1.0 to 5.0</span>
+                </div>
+
+            </div>
+
+            <br>
+            <button type="submit" class="btn btn-primary btn-full">
+                predict
+            </button>
+        </form>
+    </div>
+
+    <div style="text-align:center; margin-bottom:2rem;">
+        <a href="/results" class="btn btn-secondary">back to results</a>
+    </div>
+
+</div>
+</body>
+</html>
