@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>обучение модели — библиотека ml</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .training-wrap {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .big-spinner {
+            width: 80px;
+            height: 80px;
+            border: 8px solid #bee3f8;
+            border-top-color: #2b6cb0;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+
+        .training-wrap h2 {
+            color: #2b6cb0;
+            margin-bottom: 0.75rem;
+            font-size: 1.5rem;
+        }
+
+        .training-wrap p {
+            color: #718096;
+            margin-bottom: 1.5rem;
+            line-height: 1.7;
+        }
+
+        .info-row {
+            display: inline-flex;
+            gap: 2rem;
+            background: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-item .info-val {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #2b6cb0;
+        }
+
+        .info-item .info-lbl {
+            font-size: 0.78rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .progress-bar-wrap {
+            background: #e2e8f0;
+            border-radius: 999px;
+            height: 12px;
+            max-width: 480px;
+            margin: 0 auto 1.25rem;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #3182ce, #2b6cb0);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .status-text {
+            font-size: 0.9rem;
+            color: #a0aec0;
+            min-height: 1.4rem;
+        }
+
+        .eta-text {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-top: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="brand">библиотека ml</a>
+    <ul>
+        <li><a href="/">главная</a></li>
+        <li><a href="/results">результаты</a></li>
+        <li><a href="/predict">предсказание</a></li>
+        <li><a href="/logs">логи</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div class="card training-wrap">
+
+        <div class="big-spinner"></div>
+
+        <h2>обучение модели random forest</h2>
+
+        <div class="info-row">
+            <div class="info-item">
+                <div class="info-val">{{ "{:,}".format(n_rows).replace(",", " ") }}</div>
+                <div class="info-lbl">строк в датасете</div>
+            </div>
+            <div class="info-item">
+                <div class="info-val">100</div>
+                <div class="info-lbl">деревьев</div>
+            </div>
+            <div class="info-item">
+                <div class="info-val">80 / 20</div>
+                <div class="info-lbl">train / test</div>
+            </div>
+        </div>
+
+        <p>
+            пожалуйста не закрывайте страницу.<br>
+            после завершения вы будете перенаправлены на страницу результатов.
+        </p>
+
+        <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+
+        <div class="status-text" id="statusText">инициализация...</div>
+        <div class="eta-text" id="etaText"></div>
+
+    </div>
+</div>
+
+<script>
+    var startTime = Date.now();
+    var progressValue = 0;
+
+    // плавная анимация прогресс-бара независимо от статуса
+    function animateProgress() {
+        if (progressValue < 88) {
+            progressValue += Math.random() * 1.5;
+            progressValue = Math.min(progressValue, 88);
+            document.getElementById("progressBar").style.width = progressValue + "%";
+        }
+    }
+
+    setInterval(animateProgress, 600);
+
+    function formatTime(seconds) {
+        if (seconds < 60) return Math.ceil(seconds) + " сек";
+        return Math.ceil(seconds / 60) + " мин";
+    }
+
+    function checkStatus() {
+        fetch("/status")
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var el  = document.getElementById("statusText");
+                var eta = document.getElementById("etaText");
+                var elapsed = (Date.now() - startTime) / 1000;
+
+                if (data.state === "done") {
+                    document.getElementById("progressBar").style.width = "100%";
+                    el.textContent  = "обучение завершено, перенаправление...";
+                    eta.textContent = "";
+                    setTimeout(function() {
+                        window.location.href = "/results";
+                    }, 800);
+
+                } else if (data.state === "error") {
+                    el.textContent       = "ошибка: " + data.message;
+                    el.style.color       = "#e53e3e";
+                    eta.textContent      = "";
+
+                } else {
+                    el.textContent = "обучение в процессе...";
+                    if (elapsed > 5) {
+                        eta.textContent = "прошло: " + formatTime(elapsed);
+                    }
+                    setTimeout(checkStatus, 1500);
+                }
+            })
+            .catch(function() {
+                setTimeout(checkStatus, 2000);
+            });
+    }
+
+    setTimeout(checkStatus, 2000);
+</script>
+
+</body>
+</html>

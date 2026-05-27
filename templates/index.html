@@ -3,24 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>library ml</title>
+    <title>библиотечный ml-анализ</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
 <nav>
-    <a href="/" class="brand">library ml</a>
+    <a href="/" class="brand">библиотека ml</a>
     <ul>
-        <li><a href="/" class="active">upload</a></li>
-        <li><a href="/results">results</a></li>
-        <li><a href="/predict">predict</a></li>
+        <li><a href="/" class="active">главная</a></li>
+        <li><a href="/results">результаты</a></li>
+        <li><a href="/predict">предсказание</a></li>
+        <li><a href="/logs">логи</a></li>
     </ul>
 </nav>
-
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner"></div>
-    <p>training model, please wait...</p>
-</div>
 
 <div class="container">
 
@@ -31,46 +27,151 @@
     {% endwith %}
 
     <div class="card hero">
-        <h1>book popularity analysis</h1>
+        <h1>анализ популярности книг</h1>
         <p class="subtitle">
-            upload a library catalog dataset. the system will train a machine learning model
-            and help predict how many copies of a new book should be purchased.
+            система обучает модель машинного обучения на данных библиотечного каталога
+            и предсказывает, сколько экземпляров новой книги стоит закупить.
         </p>
     </div>
 
+    <!-- шаг 1 -->
     <div class="card">
-        <h2>upload data</h2>
-        <p>
-            upload a csv file with historical book data.
-            the file must contain columns:
-            <strong>book_id, genre, author_popularity, year_published,
-            price, page_count, times_borrowed, rating, is_popular</strong>.
-        </p>
+        <h2>шаг 1 — получить датасет</h2>
+        <p>выберите один из трёх способов получения данных.</p>
 
-        <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
-            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-                <div class="icon">[ file ]</div>
-                <label for="fileInput">
-                    <strong>click to select file</strong><br>
-                    <span style="color:#a0aec0;font-size:0.9rem;">csv format only</span>
-                </label>
-                <input type="file" id="fileInput" name="file" accept=".csv">
-                <div class="file-name" id="fileName">no file selected</div>
+        <div class="three-col">
+
+            <!-- генерация -->
+            <div class="inner-card">
+                <h3>сгенерировать</h3>
+                <p class="small-text">
+                    синтетические данные с настраиваемым количеством строк.
+                    удобно для тестирования и демонстрации.
+                </p>
+                <form action="/generate" method="POST">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="n_rows">количество строк</label>
+                        <select name="n_rows" id="n_rows">
+                            <option value="10000">10 000</option>
+                            <option value="50000">50 000</option>
+                            <option value="100000" selected>100 000</option>
+                            <option value="200000">200 000</option>
+                            <option value="500000">500 000</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">
+                        сгенерировать
+                    </button>
+                </form>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-full" id="submitBtn">
-                upload and train model
+            <!-- kaggle -->
+            <div class="inner-card">
+                <h3>kaggle goodreads</h3>
+                <p class="small-text">
+                    реальные данные из kaggle (11 000+ книг с рейтингами).
+                    {% if kaggle_exists %}
+                    архив обнаружен, можно использовать.
+                    {% else %}
+                    скачайте архив с kaggle и положите в папку проекта.
+                    {% endif %}
+                </p>
+                {% if kaggle_exists %}
+                <form action="/use_kaggle" method="POST">
+                    <button type="submit" class="btn btn-success btn-full">
+                        использовать goodreads
+                    </button>
+                </form>
+                {% else %}
+                <a href="https://www.kaggle.com/datasets/jealousleopard/goodreadsbooks"
+                   target="_blank" class="btn btn-secondary btn-full"
+                   style="display:block; text-align:center;">
+                    скачать с kaggle
+                </a>
+                <p class="small-text" style="margin-top:0.5rem;">
+                    скачайте goodreadsbooks.zip и положите в корень проекта
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- загрузка своего -->
+            <div class="inner-card">
+                <h3>загрузить свой</h3>
+                <p class="small-text">
+                    csv со столбцами: book_id, genre, author_popularity,
+                    year_published, price, page_count, times_borrowed,
+                    rating, is_popular.
+                </p>
+                <form action="/upload" method="POST" enctype="multipart/form-data">
+                    <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+                        <label for="fileInput">
+                            <strong>выбрать файл</strong>
+                        </label>
+                        <input type="file" id="fileInput" name="file" accept=".csv">
+                        <div class="file-name" id="fileName">файл не выбран</div>
+                    </div>
+                    <button type="submit" class="btn btn-secondary btn-full">
+                        загрузить csv
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        {% if dataset_exists %}
+        <div class="status-ok" style="margin-top: 1.25rem;">
+            датасет готов: data/books.csv
+            {% if dataset_info.n_rows > 0 %}
+            — {{ "{:,}".format(dataset_info.n_rows).replace(",", " ") }} строк
+            ({{ dataset_info.source }})
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- шаг 2 -->
+    {% if dataset_exists %}
+    <div class="card">
+        <h2>шаг 2 — обучить модель</h2>
+        <p>
+            датасет готов
+            {% if dataset_info.n_rows > 0 %}
+            ({{ "{:,}".format(dataset_info.n_rows).replace(",", " ") }} строк,
+            источник: {{ dataset_info.source }})
+            {% endif %}.
+            нажмите кнопку для запуска обучения.
+        </p>
+        <form action="/train" method="POST">
+            <button type="submit" class="btn btn-success btn-full">
+                запустить обучение модели
             </button>
         </form>
     </div>
+    {% endif %}
+
+    <!-- шаг 3 -->
+    {% if model_exists %}
+    <div class="card">
+        <h2>шаг 3 — результаты и предсказание</h2>
+        <p>модель обучена. посмотрите метрики или сделайте предсказание.</p>
+        <div class="btn-row">
+            <a href="/results" class="btn btn-primary">результаты</a>
+            <a href="/predict" class="btn btn-success">предсказать книгу</a>
+        </div>
+    </div>
+    {% endif %}
 
     <div class="card">
-        <h2>how it works</h2>
+        <h2>как это работает</h2>
         <p>
-            <strong>1. upload.</strong> the system accepts csv files with book data (10 to 500000+ rows).<br><br>
-            <strong>2. training.</strong> random forest classifier analyzes dependencies between genre, rating, author popularity and other parameters.<br><br>
-            <strong>3. results.</strong> you get model metrics and 4 charts with fund analytics.<br><br>
-            <strong>4. prediction.</strong> enter parameters of a new book and the system will recommend the optimal number of copies to purchase.
+            <strong>1. данные.</strong>
+            загрузите csv — синтетический, с kaggle или свой.<br><br>
+            <strong>2. обучение.</strong>
+            random forest обучается предсказывать поле is_popular.<br><br>
+            <strong>3. результаты.</strong>
+            метрики качества и 4 графика аналитики.<br><br>
+            <strong>4. предсказание.</strong>
+            введите параметры книги — система рекомендует число экземпляров.
         </p>
     </div>
 
@@ -78,12 +179,8 @@
 
 <script>
 document.getElementById("fileInput").addEventListener("change", function() {
-    const name = this.files[0] ? this.files[0].name : "no file selected";
+    var name = this.files[0] ? this.files[0].name : "файл не выбран";
     document.getElementById("fileName").textContent = name;
-});
-
-document.getElementById("uploadForm").addEventListener("submit", function() {
-    document.getElementById("loadingOverlay").classList.add("show");
 });
 </script>
 

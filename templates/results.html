@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>results — library ml</title>
+    <title>результаты — библиотека ml</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
 <nav>
-    <a href="/" class="brand">library ml</a>
+    <a href="/" class="brand">библиотека ml</a>
     <ul>
-        <li><a href="/">upload</a></li>
-        <li><a href="/results" class="active">results</a></li>
-        <li><a href="/predict">predict</a></li>
+        <li><a href="/">загрузка</a></li>
+        <li><a href="/results" class="active">результаты</a></li>
+        <li><a href="/predict">предсказание</a></li>
+        <li><a href="/logs">логи</a></li>
     </ul>
 </nav>
 
@@ -28,31 +29,31 @@
     {% if metrics %}
 
     <div class="card">
-        <h2>dataset summary</h2>
-        <p>data loaded and processed successfully. model has been trained.</p>
+        <h2>сводка по датасету</h2>
+        <p>данные успешно загружены и обработаны. модель обучена.</p>
         <div class="stats-row">
             <div class="stat-item">
                 <div class="val">{{ "{:,}".format(metrics.total) }}</div>
-                <div class="lbl">total records</div>
+                <div class="lbl">всего записей</div>
             </div>
             <div class="stat-item">
                 <div class="val">{{ "{:,}".format(metrics.popular_count) }}</div>
-                <div class="lbl">popular books</div>
+                <div class="lbl">популярных книг</div>
             </div>
             <div class="stat-item">
                 <div class="val">{{ "{:,}".format(metrics.not_popular_count) }}</div>
-                <div class="lbl">not popular books</div>
+                <div class="lbl">непопулярных книг</div>
             </div>
         </div>
     </div>
 
     <div class="card">
-        <h2>model metrics (random forest)</h2>
-        <p>classification quality evaluated on test set (20% of data).</p>
+        <h2>метрики модели (random forest)</h2>
+        <p>качество классификации оценено на тестовой выборке (20% данных).</p>
         <div class="metrics-grid">
             <div class="metric-card">
                 <div class="metric-value">{{ (metrics.accuracy * 100)|round(1) }}%</div>
-                <div class="metric-label">accuracy</div>
+                <div class="metric-label">точность</div>
             </div>
             <div class="metric-card">
                 <div class="metric-value">{{ (metrics.precision * 100)|round(1) }}%</div>
@@ -74,43 +75,43 @@
     </div>
 
     <div class="card">
-        <h2>data visualization</h2>
-        <p>charts generated automatically after model training.</p>
+        <h2>визуализация данных</h2>
+        <p>графики сгенерированы автоматически после обучения модели.</p>
         <div class="plots-grid">
             <div class="plot-card">
-                <h3>popularity by genre</h3>
+                <h3>популярность по жанрам</h3>
                 <img src="{{ url_for('static', filename='plots/genre_popularity.png') }}"
-                     alt="genre popularity">
+                     alt="популярность по жанрам">
             </div>
             <div class="plot-card">
-                <h3>correlation matrix</h3>
+                <h3>корреляционная матрица</h3>
                 <img src="{{ url_for('static', filename='plots/correlation.png') }}"
-                     alt="correlation">
+                     alt="корреляция">
             </div>
             <div class="plot-card">
-                <h3>feature importance</h3>
+                <h3>важность признаков</h3>
                 <img src="{{ url_for('static', filename='plots/feature_importance.png') }}"
-                     alt="feature importance">
+                     alt="важность признаков">
             </div>
             <div class="plot-card">
-                <h3>roc curve</h3>
+                <h3>roc-кривая</h3>
                 <img src="{{ url_for('static', filename='plots/roc_curve.png') }}"
-                     alt="roc curve">
+                     alt="roc кривая">
             </div>
         </div>
     </div>
 
     <div style="text-align:center; margin-bottom: 2rem;">
         <a href="/predict" class="btn btn-success">
-            predict popularity for a new book
+            предсказать популярность новой книги
         </a>
     </div>
 
     {% else %}
     <div class="card" style="text-align:center; padding: 3rem;">
-        <h2 style="margin-bottom:0.75rem;">no data yet</h2>
-        <p style="margin-bottom:1.5rem;">please upload a csv file to train the model.</p>
-        <a href="/" class="btn btn-primary">back to upload</a>
+        <h2 style="margin-bottom:0.75rem;">данных пока нет</h2>
+        <p style="margin-bottom:1.5rem;">сначала загрузите csv-файл для обучения модели.</p>
+        <a href="/" class="btn btn-primary">вернуться к загрузке</a>
     </div>
     {% endif %}
 

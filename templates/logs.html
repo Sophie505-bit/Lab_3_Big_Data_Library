@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>логи — библиотека ml</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .log-box {
+            background: #1a202c;
+            color: #a0aec0;
+            border-radius: 10px;
+            padding: 1.5rem;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.82rem;
+            line-height: 1.65;
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .log-box .log-info  { color: #63b3ed; }
+        .log-box .log-error { color: #fc8181; }
+        .log-box .log-warn  { color: #f6e05e; }
+        .log-box .log-time  { color: #68d391; }
+
+        .log-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .log-controls label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.88rem;
+            color: #718096;
+            cursor: pointer;
+        }
+
+        .log-status {
+            font-size: 0.82rem;
+            color: #a0aec0;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="brand">библиотека ml</a>
+    <ul>
+        <li><a href="/">главная</a></li>
+        <li><a href="/results">результаты</a></li>
+        <li><a href="/predict">предсказание</a></li>
+        <li><a href="/logs" class="active">логи</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <div class="card">
+        <h2>журнал событий</h2>
+        <p>логи работы системы. обновляются автоматически каждые 3 секунды.</p>
+
+        <div class="log-controls">
+            <label>
+                <input type="checkbox" id="autoRefresh" checked>
+                автообновление
+            </label>
+            <label>
+                <input type="checkbox" id="autoScroll" checked>
+                прокрутка вниз
+            </label>
+            <form action="/logs/clear" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-secondary" style="padding:0.4rem 1rem; font-size:0.85rem;">
+                    очистить логи
+                </button>
+            </form>
+            <span class="log-status" id="logStatus">обновлено</span>
+        </div>
+
+        <div class="log-box" id="logBox">{{ log_content if log_content else "логи пусты. запустите генерацию или обучение." }}</div>
+    </div>
+
+</div>
+
+<script>
+var logBox      = document.getElementById("logBox");
+var autoRefresh = document.getElementById("autoRefresh");
+var autoScroll  = document.getElementById("autoScroll");
+var logStatus   = document.getElementById("logStatus");
+
+function colorize(text) {
+    var lines = text.split("\n");
+    var result = [];
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        // подсветка времени
+        line = line.replace(
+            /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/,
+            '<span class="log-time">$1</span>'
+        );
+        // подсветка уровней
+        if (line.indexOf("[ERROR]") !== -1) {
+            line = '<span class="log-error">' + line + '</span>';
+        } else if (line.indexOf("[WARNING]") !== -1) {
+            line = '<span class="log-warn">' + line + '</span>';
+        } else if (line.indexOf("[INFO]") !== -1) {
+            line = '<span class="log-info">' + line + '</span>';
+        }
+        result.push(line);
+    }
+    return result.join("\n");
+}
+
+function fetchLogs() {
+    if (!autoRefresh.checked) return;
+
+    fetch("/logs/raw")
+        .then(function(r) { return r.text(); })
+        .then(function(text) {
+            if (text.length === 0) {
+                logBox.innerHTML = "логи пусты.";
+            } else {
+                logBox.innerHTML = colorize(text);
+            }
+            if (autoScroll.checked) {
+                logBox.scrollTop = logBox.scrollHeight;
+            }
+            logStatus.textContent = "обновлено " + new Date().toLocaleTimeString();
+        })
+        .catch(function() {
+            logStatus.textContent = "ошибка обновления";
+        });
+}
+
+setInterval(fetchLogs, 3000);
+
+// начальная прокрутка вниз
+logBox.scrollTop = logBox.scrollHeight;
+</script>
+
+</body>
+</html>
