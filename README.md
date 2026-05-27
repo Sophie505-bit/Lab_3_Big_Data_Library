@@ -53,26 +53,6 @@ python app.py
 
 ---
 
-## структура проекта
-
-Lab_3_Big_Data_Library/
-├── app.py
-├── requirements.txt
-├── README.md
-├── data/
-│   └── generate_data.py
-├── ml/
-│   └── model.py
-├── static/
-│   ├── css/style.css
-│   └── plots/
-└── templates/
-    ├── index.html
-    ├── results.html
-    └── predict.html
-
----
-
 ## формат CSV
 
 book_id     — идентификатор книги (int)
